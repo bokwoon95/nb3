@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="/admin/assets/lib/tachyons.min.css.gz">
+<link rel="stylesheet" href="/admin/assets/styles.css">
+<title>Login</title>
+<header class="notebrew-header"><a href="/">notebrew</a></header>
+<h1 class="f3">Login</h1>
+<form method="POST">
+    <p><label for="email">Email: </label><input id="email" type="email" name="email" required>
+    <p><label for="password">Password: </label><input id="password" type="password" name="password" required>
+    {{- if .target }}
+    <p><input type="hidden" name="target" value="{{ .target }}">
+    {{- end }}
+    <p><input type="submit">
+    {{- if eq .responseCode 1 }}
+    <p>[ERROR] Incorrect email or password.
+    {{- else if eq .responseCode 2 }}
+    <p>[SUCCESS] Password reset successfully. Please login using your new credentials.
+    {{- end }}
+</form>

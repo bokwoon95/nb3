@@ -1,0 +1,48 @@
+== 2023-04-16 ==
+
+SameSite=Lax does not protext against untrusted subdomains for CSRF.
+We could have used traditional anti-CSRF mitigations like CSRF tokens for every non GET request and kept the promiscuous subdomains, but CSRF tokens require secret keys in order to do keyed-hashing which inevitably means key management which is something I'd really really like to avoid.
+A separate domain for user-generated content is the simplest solution.
+But now that I have an additional domain to add to the code, it throws my naming convention out of whack. Previously I was too comfortable with only ever dealing with one RootDomain field, now what do I call the new one? UGCRootDomain?
+Having one RootDomain was simple, address.txt either points to a localhost port or it points to a domain name. Now how do I map what's in address.txt to two domains? address1.txt and address2.txt? But having only one address (a localhost address) is a valid configuration.
+How then do I indicate (in address.txt)
+- Which is the UGC domain?
+- Is the UGC domain subdomain or subdirectory? Do we want to support subdirectory?
+- Subdirectory is insecure af but non-technical people may like it because it doesn't require getting API keys from the domain registrar. Subdirectory can also live comfortably inside the RootDomain.
+
+Solution:
+
+AdminDomain string
+ContentDomain string
+MultisiteMode string
+
+address.txt => one or two addresses, maps to AdminDomain and ContentDomain
+database.txt
+multisite.txt => "subdomain" or "subdirectory", maps to MultisiteMode
+
+== 2023-04-23 ==
+
+DONE: /admin/resetpassword
+
+== 2023-04-25 ==
+
+dashboard features:
+- logout button
+- a link to /admin/notes/
+- a link to /admin/posts/
+- show most recently edited pages
+    - each with a link to /admin/pages/:path/
+    - a link to /admin/pages/
+- form to create a new note and a form to create a new post
+    - how to visually distinguish between the note form and the post form? assuming color blindness
+- show notes and posts in combined chronological order
+    - each with a link to /admin/notes/:note_id/ or /admin/posts/:post_id/
+    - how to visually distinguish between a note and a post? assuming color blindness
+
+admin:
+- notes 🔒
+- posts
+- pages
+- static
+- images
+- templates
