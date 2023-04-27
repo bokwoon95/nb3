@@ -41,8 +41,8 @@ func (nb *Notebrew) admin(w http.ResponseWriter, r *http.Request, sitename strin
 	switch segment {
 	case "":
 		nb.dashboard(w, r)
-	case "assets":
-		nb.assets(w, r, urlpath)
+	case "static":
+		nb.static(w, r, urlpath)
 	case "login":
 		segment, _, _ := strings.Cut(strings.Trim(urlpath, "/"), "/")
 		if segment != "" {
@@ -68,7 +68,7 @@ func (nb *Notebrew) admin(w http.ResponseWriter, r *http.Request, sitename strin
 	case "update":
 	case "delete":
 	case "rename":
-	case "static":
+	case "assets":
 	case "images":
 	case "templates":
 	case "posts":
@@ -333,8 +333,8 @@ func (nb *Notebrew) consumeLoginToken(w http.ResponseWriter, r *http.Request, si
 	http.Redirect(w, r, target, http.StatusFound)
 }
 
-func (nb *Notebrew) assets(w http.ResponseWriter, r *http.Request, urlpath string) {
-	file, err := os.DirFS(".").Open(path.Join("assets", urlpath))
+func (nb *Notebrew) static(w http.ResponseWriter, r *http.Request, urlpath string) {
+	file, err := os.DirFS(".").Open(path.Join("static", urlpath))
 	if err != nil {
 		if errors.Is(err, fs.ErrNotExist) {
 			http.Error(w, "Not Found", http.StatusNotFound)

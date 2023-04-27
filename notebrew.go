@@ -398,7 +398,7 @@ func serveFile(w http.ResponseWriter, r *http.Request, file fs.File) {
 }
 
 func (nb *Notebrew) serveUserFile(w http.ResponseWriter, r *http.Request, sitename string, urlpath string) {
-	if !strings.HasPrefix(urlpath, "static/") && !strings.HasPrefix(urlpath, "images/") {
+	if !strings.HasPrefix(urlpath, "assets/") && !strings.HasPrefix(urlpath, "images/") {
 		http.Error(w, "Not Found", http.StatusNotFound)
 		return
 	}

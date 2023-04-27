@@ -276,7 +276,7 @@ func (nb *Notebrew) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	switch segment {
 	case "admin":
 		nb.admin(w, r, sitename, urlpath)
-	case "static", "images":
+	case "assets", "images":
 		nb.serveUserFile(w, r, sitename, path.Join(segment, urlpath))
 	case "posts":
 		// nb.posts(w, r, sitename, urlpath)

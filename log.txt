@@ -50,4 +50,4 @@ admin:
 - static
 - images
 - templates
-(notes+posts=content, pages+templates=html, static+images=assets, settings)
+(notes (posts), pages (templates), assets, settings)
