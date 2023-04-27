@@ -39,15 +39,23 @@ dashboard features:
     - each with a link to /admin/notes/:note_id/ or /admin/posts/:post_id/
     - how to visually distinguish between a note and a post? assuming color blindness
 
+== 2023-04-27 ==
+
 admin:
-- dashboard
-    - MRU pages
-    - Quick Note + Quick Post
+- home
+    - Quick Note + Quick Post (text posts and image posts only)
     - RSS Feed
-- note 🔒
 - posts
+    - xxxxx.post.md
+    - xxxxx.note.md
 - pages
-- static
-- images
-- templates
-(notes (posts), pages (templates), assets, settings)
+    - templates
+- assets
+- images (can only be created from image post or longform post)
+(home, posts (notes), pages (templates), assets)
+
+example.com/posts/ layout:
+- grid-like
+- text posts occupy a horizontal layer
+- image posts occupy a square
+- longform posts occupy a horizontal layer
