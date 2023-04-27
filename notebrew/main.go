@@ -147,12 +147,14 @@ func main() {
 		exit(err)
 	}
 	wait := make(chan os.Signal, 1)
+	done := make(chan struct{}, 1)
 	signal.Notify(wait, syscall.SIGINT, syscall.SIGTERM)
 	go func() {
 		<-wait
 		ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
 		defer cancel()
 		server.Shutdown(ctx)
+		close(done)
 	}()
 	if server.Addr == ":443" || server.Addr == ":https" {
 		go http.ListenAndServe(":80", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -170,6 +172,7 @@ func main() {
 		}))
 		fmt.Println("Listening on " + server.Addr)
 		server.ListenAndServeTLS("", "")
+		<-done
 		return
 	}
 	listener, err := net.Listen("tcp", server.Addr)
@@ -195,4 +198,5 @@ func main() {
 	// terminal.
 	fmt.Println("Listening on http://" + server.Addr)
 	server.Serve(listener)
+	<-done
 }
