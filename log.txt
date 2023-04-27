@@ -40,9 +40,14 @@ dashboard features:
     - how to visually distinguish between a note and a post? assuming color blindness
 
 admin:
-- notes 🔒
+- dashboard
+    - MRU pages
+    - Quick Note + Quick Post
+    - RSS Feed
+- note 🔒
 - posts
 - pages
 - static
 - images
 - templates
+(notes+posts=content, pages+templates=html, static+images=assets, settings)
