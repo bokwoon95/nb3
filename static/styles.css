@@ -16,6 +16,33 @@
   resize: none;
 }
 
+.dropdown {
+  display: inline-block;
+  position: relative;
+}
+
+.dropdown-menu {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+}
+
+.dropdown-menu a {
+  display: block;
+  text-decoration: none;
+  color: black;
+}
+
+.dropdown[open] .dropdown-menu {
+  display: block;
+}
+
+/* Hide arrow glyph in Safari */
+details > summary::-webkit-details-marker {
+    display: none;
+}
+
 /****** Elad Shechter's RESET *******/
 /* https://elad.medium.com/normalize-css-or-css-reset-9d75175c5d1e */
 /*** box sizing border-box for all elements ***/

@@ -53,6 +53,8 @@ admin:
     - templates
     - assets
 - settings (gear icon)
+    - profile
+    - logout
 - images (can only be created from image post or longform post)
 (home, posts (notes), pages (templates), assets)
 

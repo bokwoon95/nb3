@@ -389,7 +389,8 @@ func (nb *Notebrew) home(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Println(err)
 		}
-	case "POST":
+	default:
+		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
 	}
 }
 
@@ -584,5 +585,7 @@ func (nb *Notebrew) resetpassword(w http.ResponseWriter, r *http.Request) {
 			SameSite: http.SameSiteLaxMode,
 		})
 		http.Redirect(w, r, "/admin/login/", http.StatusFound)
+	default:
+		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
 	}
 }
