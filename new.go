@@ -224,7 +224,7 @@ func (nb *Notebrew) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// Clean the path and redirect if necessary.
 	if r.Method == "GET" {
 		cleanedPath := path.Clean(r.URL.Path)
-		if !strings.HasSuffix(cleanedPath, "/") && path.Ext(cleanedPath) == "" {
+		if cleanedPath != "/" && path.Ext(cleanedPath) == "" {
 			cleanedPath += "/"
 		}
 		if cleanedPath != r.URL.Path {
