@@ -10,14 +10,18 @@
     <p class="mr3"><a href="/admin/posts/">Posts</a>
     <p class="mr3"><a href="/admin/pages/">Pages</a>
     <p class="mr3"><a href="/admin/assets/">Assets</a>
+    <p class="mr3"><a href="/admin/assets/">Settings</a>
     <p class="mr3"><input type="submit" form="logout" value="Logout" class="pointer">
     <form id="logout" method="POST" action="/admin/logout/" class="dn"></form>
 </div>
 <form method="POST">
-    <p>New Note | Post
-    <p><textarea name=""></textarea>
+    <p><textarea name="" class="h4 w-100"></textarea>
+    <p>
+        <button class="br-pill white bg-black ph3 pv2 mb2">Create Private Note</button>
+        <button class="br-pill black ba bw1 ph3 pv2 mb2">Create Public Post</button>
+    </p>
 </form>
-<h3 class="f3">Posts & Notes</h3>
+<h3 class="f3">Feed</h3>
 <p>entry1</p>
 <p>entry2</p>
 <p>entry3</p>

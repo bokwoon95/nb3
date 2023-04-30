@@ -42,15 +42,17 @@ dashboard features:
 == 2023-04-27 ==
 
 admin:
-- home
+- home (home icon)
     - Quick Note + Quick Post (text posts and image posts only)
     - RSS Feed
-- posts
+- posts (pencil icon)
+    - (edit post list template (post-list.html)) (edit post template (post.html))
     - xxxxx.post.md
     - xxxxx.note.md
-- pages
+- pages (page icon)
     - templates
-- assets
+    - assets
+- settings (gear icon)
 - images (can only be created from image post or longform post)
 (home, posts (notes), pages (templates), assets)
 
