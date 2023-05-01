@@ -5,18 +5,26 @@
 <link rel="stylesheet" href="/admin/static/lib/tachyons.min.css.gz">
 <link rel="stylesheet" href="/admin/static/styles.css">
 <title>notebrew</title>
-<div class="flex">
-    <p class="mr3"><a href="/admin/">Home</a>
-    <p class="mr3"><a href="/admin/posts/">Posts</a>
-    <p class="mr3"><a href="/admin/pages/">Pages</a>
-    <details class="dropdown">
-        <summary class="dropdown-toggle pointer">Settings</summary>
-        <ul class="dropdown-menu">
-            <li>Hello
-            <li>Goodbye
-            <li><input type="submit" form="logout" value="Logout" class="pointer">
-        </ul>
-    </details>
+<div class="flex justify-between" style="min-height:50px;">
+    <div class="ml3 flex items-center"><a href="/">Notebrew</a></div>
+    <div class="mr3 flex items-center">
+        <div class="mr3"><a href="/admin/">Home</a></div>
+        <div class="mr3"><a href="/admin/posts/">Posts</a></div>
+        <div class="mr3"><a href="/admin/pages/">Pages</a></div>
+        <details class="nav-menu dropdown">
+            <summary class="dropdown-toggle pointer flex">
+                <svg class="items-center" aria-labelledby="nav-menu-svg-title" role="img" fill="currentColor" stroke="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16">
+                    <title id="nav-menu-svg-title">Menu</title>
+                    <path fill-rule="evenodd" d="M1 2.75A.75.75 0 011.75 2h12.5a.75.75 0 110 1.5H1.75A.75.75 0 011 2.75zm0 5A.75.75 0 011.75 7h12.5a.75.75 0 110 1.5H1.75A.75.75 0 011 7.75zM1.75 12a.75.75 0 100 1.5h12.5a.75.75 0 100-1.5H1.75z"></path>
+                </svg>
+            </summary>
+            <ul class="dropdown-menu nav-menu-inner">
+                <li><span class="unselectable">Hello</span>
+                <li><span class="unselectable">Goodbye</span>
+                <li><input type="submit" form="logout" value="Logout" class="pointer">
+            </ul>
+        </details>
+    </div>
     <form id="logout" method="POST" action="/admin/logout/" class="dn"></form>
 </div>
 <form method="POST">
@@ -30,21 +38,6 @@
 <p>entry1</p>
 <p>entry2</p>
 <p>entry3</p>
-<details class="nav-menu">
-    <summary>
-        <svg aria-labelledby="nav-menu-svg-title" role="img" fill="currentColor" stroke="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16">
-            <title id="nav-menu-svg-title">Menu</title>
-            <path fill-rule="evenodd" d="M1 2.75A.75.75 0 011.75 2h12.5a.75.75 0 110 1.5H1.75A.75.75 0 011 2.75zm0 5A.75.75 0 011.75 7h12.5a.75.75 0 110 1.5H1.75A.75.75 0 011 7.75zM1.75 12a.75.75 0 100 1.5h12.5a.75.75 0 100-1.5H1.75z"></path>
-        </svg>
-    </summary>
-    <div class="nav-menu-inner">
-        <ul>
-            <li><a href="/">Item one</a></li>
-            <li><a href="/">Item two</a></li>
-            <li><a href="/">Item three</a></li>
-        </ul>
-    </div>
-</details>
 <script>
 document.body.addEventListener('click', (ev) => {
     /* Close any open details elements that this click is outside of */
