@@ -9,8 +9,14 @@
     <p class="mr3"><a href="/admin/">Home</a>
     <p class="mr3"><a href="/admin/posts/">Posts</a>
     <p class="mr3"><a href="/admin/pages/">Pages</a>
-    <p class="mr3"><a href="/admin/settings/">Settings</a>
-    <p class="mr3"><input type="submit" form="logout" value="Logout" class="pointer">
+    <details class="dropdown">
+        <summary class="dropdown-toggle pointer">Settings</summary>
+        <ul class="dropdown-menu">
+            <li>Hello
+            <li>Goodbye
+            <li><input type="submit" form="logout" value="Logout" class="pointer">
+        </ul>
+    </details>
     <form id="logout" method="POST" action="/admin/logout/" class="dn"></form>
 </div>
 <form method="POST">
@@ -24,13 +30,34 @@
 <p>entry1</p>
 <p>entry2</p>
 <p>entry3</p>
-<nav>
-    <details class="dropdown">
-        <summary class="dropdown-toggle">Menu</summary>
-        <div class="dropdown-menu">
-            <a href="#">Option 1</a>
-            <a href="#">Option 2</a>
-            <a href="#">Option 3</a>
-        </div>
-    </details>
-</nav>
+<details class="nav-menu">
+    <summary>
+        <svg aria-labelledby="nav-menu-svg-title" role="img" fill="currentColor" stroke="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16">
+            <title id="nav-menu-svg-title">Menu</title>
+            <path fill-rule="evenodd" d="M1 2.75A.75.75 0 011.75 2h12.5a.75.75 0 110 1.5H1.75A.75.75 0 011 2.75zm0 5A.75.75 0 011.75 7h12.5a.75.75 0 110 1.5H1.75A.75.75 0 011 7.75zM1.75 12a.75.75 0 100 1.5h12.5a.75.75 0 100-1.5H1.75z"></path>
+        </svg>
+    </summary>
+    <div class="nav-menu-inner">
+        <ul>
+            <li><a href="/">Item one</a></li>
+            <li><a href="/">Item two</a></li>
+            <li><a href="/">Item three</a></li>
+        </ul>
+    </div>
+</details>
+<script>
+document.body.addEventListener('click', (ev) => {
+    /* Close any open details elements that this click is outside of */
+    var target = ev.target;
+    var detailsClickedWithin = null;
+    while (target && target.tagName != 'DETAILS') {
+        target = target.parentNode;
+    }
+    if (target && target.tagName == 'DETAILS') {
+        detailsClickedWithin = target;
+    }
+    Array.from(document.getElementsByTagName('details')).filter(
+        (details) => details.open && details != detailsClickedWithin
+    ).forEach(details => details.open = false);
+});
+</script>

@@ -1,10 +1,12 @@
 package nb3
 
 import (
+	"bytes"
 	"context"
 	"database/sql"
 	"errors"
 	"fmt"
+	"html/template"
 	"io"
 	"io/fs"
 	"log"
@@ -282,7 +284,22 @@ func (nb *Notebrew) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		// nb.posts(w, r, sitename, urlpath)
 	default:
 		// nb.base(w, r, sitename, urlpath)
-		w.Write([]byte("<!DOCTYPE html><title>notebrew</title><h1>Hello World!</h1>"))
+		// w.Write([]byte("<!DOCTYPE html><title>notebrew</title><h1>Hello World!</h1>"))
+		tmpl, err := template.ParseFS(os.DirFS("."), "html/default.html")
+		if err != nil {
+			http.Error(w, callermsg(err), http.StatusInternalServerError)
+			return
+		}
+		var buf bytes.Buffer
+		err = tmpl.Execute(&buf, map[string]any{})
+		if err != nil {
+			http.Error(w, callermsg(err), http.StatusInternalServerError)
+			return
+		}
+		_, err = buf.WriteTo(w)
+		if err != nil {
+			log.Println(err)
+		}
 	}
 }
 

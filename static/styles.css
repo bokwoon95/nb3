@@ -28,12 +28,6 @@
   left: 0;
 }
 
-.dropdown-menu a {
-  display: block;
-  text-decoration: none;
-  color: black;
-}
-
 .dropdown[open] .dropdown-menu {
   display: block;
 }
@@ -41,6 +35,9 @@
 /* Hide arrow glyph in Safari */
 details > summary::-webkit-details-marker {
     display: none;
+}
+details > summary {
+  list-style: none;
 }
 
 /****** Elad Shechter's RESET *******/
