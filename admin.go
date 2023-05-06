@@ -40,7 +40,7 @@ func (nb *Notebrew) admin(w http.ResponseWriter, r *http.Request, sitename strin
 
 	switch segment {
 	case "":
-		nb.home(w, r)
+		nb.dashboard(w, r)
 	case "static":
 		nb.static(w, r, urlpath)
 	case "login":
@@ -97,7 +97,7 @@ func (nb *Notebrew) login(w http.ResponseWriter, r *http.Request) {
 			SameSite: http.SameSiteLaxMode,
 		})
 		// If there is already a valid sessionToken, redirect user to the
-		// home page instead.
+		// dashboard instead.
 		sessionTokenHash := nb.sessionTokenHash(r)
 		if sessionTokenHash != nil {
 			exists, err := sq.FetchExistsContext(r.Context(), nb.DB, sq.SelectQuery{
@@ -225,7 +225,7 @@ func (nb *Notebrew) login(w http.ResponseWriter, r *http.Request) {
 			HttpOnly: true,
 			SameSite: http.SameSiteLaxMode,
 		})
-		// Redirect user to the home page.
+		// Redirect user to the dashboard.
 		http.Redirect(w, r, "/admin/", http.StatusFound)
 	default:
 		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
@@ -347,7 +347,7 @@ func (nb *Notebrew) static(w http.ResponseWriter, r *http.Request, urlpath strin
 	serveFile(w, r, file)
 }
 
-func (nb *Notebrew) home(w http.ResponseWriter, r *http.Request) {
+func (nb *Notebrew) dashboard(w http.ResponseWriter, r *http.Request) {
 	// If user does not have a sessionToken, redirect them to the login page.
 	sessionTokenHash := nb.sessionTokenHash(r)
 	if sessionTokenHash == nil {
@@ -373,8 +373,8 @@ func (nb *Notebrew) home(w http.ResponseWriter, r *http.Request) {
 	}
 	switch r.Method {
 	case "GET":
-		// Render html/home.html.
-		tmpl, err := template.ParseFS(os.DirFS("."), "html/home.html")
+		// Render html/dashboard.html.
+		tmpl, err := template.ParseFS(os.DirFS("."), "html/dashboard.html")
 		if err != nil {
 			http.Error(w, callermsg(err), http.StatusInternalServerError)
 			return
