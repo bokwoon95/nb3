@@ -101,10 +101,8 @@ func (nb *Notebrew) login(w http.ResponseWriter, r *http.Request) {
 		sessionTokenHash := nb.sessionTokenHash(r)
 		if sessionTokenHash != nil {
 			exists, err := sq.FetchExistsContext(r.Context(), nb.DB, sq.SelectQuery{
-				Dialect: nb.Dialect,
-				SelectFields: []sq.Field{
-					sq.Expr("1"),
-				},
+				Dialect:        nb.Dialect,
+				SelectFields:   SelectOne,
 				FromTable:      Sessions,
 				WherePredicate: Sessions.SESSION_TOKEN_HASH.EqBytes(sessionTokenHash),
 			})
@@ -356,10 +354,8 @@ func (nb *Notebrew) dashboard(w http.ResponseWriter, r *http.Request) {
 	}
 	// If user's sessionToken is not valid, redirect them to the login page.
 	exists, err := sq.FetchExistsContext(r.Context(), nb.DB, sq.SelectQuery{
-		Dialect: nb.Dialect,
-		SelectFields: []sq.Field{
-			sq.Expr("1"),
-		},
+		Dialect:        nb.Dialect,
+		SelectFields:   SelectOne,
 		FromTable:      Sessions,
 		WherePredicate: Sessions.SESSION_TOKEN_HASH.EqBytes(sessionTokenHash),
 	})
@@ -418,10 +414,8 @@ func (nb *Notebrew) resetpassword(w http.ResponseWriter, r *http.Request) {
 	copy(resetTokenHash[8:], checksum[:])
 	// Make sure the resetTokenHash exists in the database.
 	exists, err := sq.FetchExistsContext(r.Context(), nb.DB, sq.SelectQuery{
-		Dialect: nb.Dialect,
-		SelectFields: []sq.Field{
-			sq.Expr("1"),
-		},
+		Dialect:        nb.Dialect,
+		SelectFields:   SelectOne,
 		FromTable:      Users,
 		WherePredicate: Users.RESET_TOKEN_HASH.EqBytes(resetTokenHash[:]),
 	})
@@ -519,10 +513,8 @@ func (nb *Notebrew) resetpassword(w http.ResponseWriter, r *http.Request) {
 			Dialect:     nb.Dialect,
 			DeleteTable: Logins,
 			WherePredicate: sq.Exists(sq.SelectQuery{
-				SelectFields: []sq.Field{
-					sq.Expr("1"),
-				},
-				FromTable: Sites,
+				SelectFields: SelectOne,
+				FromTable:    Sites,
 				JoinTables: []sq.JoinTable{
 					sq.Join(Users, Users.USER_ID.Eq(Sites.USER_ID)),
 				},
@@ -541,10 +533,8 @@ func (nb *Notebrew) resetpassword(w http.ResponseWriter, r *http.Request) {
 			Dialect:     nb.Dialect,
 			DeleteTable: Sessions,
 			WherePredicate: sq.Exists(sq.SelectQuery{
-				SelectFields: []sq.Field{
-					sq.Expr("1"),
-				},
-				FromTable: Users,
+				SelectFields: SelectOne,
+				FromTable:    Users,
 				WherePredicate: sq.And(
 					Users.USER_ID.Eq(Sessions.USER_ID),
 					Users.RESET_TOKEN_HASH.EqBytes(resetTokenHash[:]),

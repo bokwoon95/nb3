@@ -13,6 +13,8 @@ import (
 //go:embed tables.go
 var migrationFS embed.FS
 
+var SelectOne = []sq.Field{sq.Expr("1")}
+
 func automigrate(dialect string, db *sql.DB) error {
 	if db == nil {
 		return nil
