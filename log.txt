@@ -66,4 +66,4 @@ example.com/posts/ layout:
 
 == 2023-05-01 ==
 
-TODO: Rename all instance of home to dashboard instead. "Home" reminds too much of "homepage" i.e. "/" and not "/admin/"
+DONE: Rename all instance of home to dashboard instead. "Home" reminds too much of "homepage" i.e. "/" and not "/admin/"
