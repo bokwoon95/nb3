@@ -601,3 +601,6 @@ func (nb *Notebrew) resetpassword(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
 	}
 }
+
+func (nb *Notebrew) create() {
+}
