@@ -65,6 +65,7 @@ func (nb *Notebrew) admin(w http.ResponseWriter, r *http.Request, sitename strin
 		}
 		nb.resetpassword(w, r)
 	case "create":
+		nb.create(w, r, urlpath)
 	case "update":
 	case "delete":
 	case "rename":
@@ -602,5 +603,15 @@ func (nb *Notebrew) resetpassword(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (nb *Notebrew) create() {
+func (nb *Notebrew) create(w http.ResponseWriter, r *http.Request, urlpath string) {
+	// POST /admin/create/post/
+	if r.Method != "POST" {
+		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+	}
+	segment, urlpath, _ := strings.Cut(strings.Trim(urlpath, "/"), "/")
+	switch segment {
+	case "post":
+	default:
+		http.Error(w, "Bad Request", http.StatusBadRequest)
+	}
 }
