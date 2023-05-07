@@ -80,6 +80,14 @@ func (nb *Notebrew) admin(w http.ResponseWriter, r *http.Request, sitename strin
 }
 
 func (nb *Notebrew) login(w http.ResponseWriter, r *http.Request) {
+	if nb.DB == nil {
+		if r.Method == "GET" {
+			http.Redirect(w, r, "/admin/", http.StatusFound)
+			return
+		}
+		http.Error(w, "Not Found", http.StatusNotFound)
+		return
+	}
 	err := r.ParseForm()
 	if err != nil {
 		http.Error(w, callermsg(err), http.StatusInternalServerError)
@@ -231,6 +239,10 @@ func (nb *Notebrew) login(w http.ResponseWriter, r *http.Request) {
 }
 
 func (nb *Notebrew) logout(w http.ResponseWriter, r *http.Request) {
+	if nb.DB == nil {
+		http.Error(w, "Not Found", http.StatusNotFound)
+		return
+	}
 	if r.Method != "POST" {
 		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
 		return
@@ -255,6 +267,10 @@ func (nb *Notebrew) logout(w http.ResponseWriter, r *http.Request) {
 }
 
 func (nb *Notebrew) consumeLoginToken(w http.ResponseWriter, r *http.Request, sitename string) {
+	if nb.DB == nil {
+		http.Error(w, "Not Found", http.StatusNotFound)
+		return
+	}
 	if r.Method != "GET" {
 		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
 		return
@@ -346,26 +362,28 @@ func (nb *Notebrew) static(w http.ResponseWriter, r *http.Request, urlpath strin
 }
 
 func (nb *Notebrew) dashboard(w http.ResponseWriter, r *http.Request) {
-	// If user does not have a sessionToken, redirect them to the login page.
-	sessionTokenHash := nb.sessionTokenHash(r)
-	if sessionTokenHash == nil {
-		http.Redirect(w, r, "/admin/login/", http.StatusFound)
-		return
-	}
-	// If user's sessionToken is not valid, redirect them to the login page.
-	exists, err := sq.FetchExistsContext(r.Context(), nb.DB, sq.SelectQuery{
-		Dialect:        nb.Dialect,
-		SelectFields:   SelectOne,
-		FromTable:      Sessions,
-		WherePredicate: Sessions.SESSION_TOKEN_HASH.EqBytes(sessionTokenHash),
-	})
-	if err != nil {
-		http.Error(w, callermsg(err), http.StatusInternalServerError)
-		return
-	}
-	if !exists {
-		http.Redirect(w, r, "/admin/login/", http.StatusFound)
-		return
+	if nb.DB != nil {
+		// If user does not have a sessionToken, redirect them to the login page.
+		sessionTokenHash := nb.sessionTokenHash(r)
+		if sessionTokenHash == nil {
+			http.Redirect(w, r, "/admin/login/", http.StatusFound)
+			return
+		}
+		// If user's sessionToken is not valid, redirect them to the login page.
+		exists, err := sq.FetchExistsContext(r.Context(), nb.DB, sq.SelectQuery{
+			Dialect:        nb.Dialect,
+			SelectFields:   SelectOne,
+			FromTable:      Sessions,
+			WherePredicate: Sessions.SESSION_TOKEN_HASH.EqBytes(sessionTokenHash),
+		})
+		if err != nil {
+			http.Error(w, callermsg(err), http.StatusInternalServerError)
+			return
+		}
+		if !exists {
+			http.Redirect(w, r, "/admin/login/", http.StatusFound)
+			return
+		}
 	}
 	switch r.Method {
 	case "GET":
@@ -391,6 +409,10 @@ func (nb *Notebrew) dashboard(w http.ResponseWriter, r *http.Request) {
 }
 
 func (nb *Notebrew) resetpassword(w http.ResponseWriter, r *http.Request) {
+	if nb.DB == nil {
+		http.Error(w, "Not Found", http.StatusNotFound)
+		return
+	}
 	err := r.ParseForm()
 	if err != nil {
 		http.Error(w, callermsg(err), http.StatusInternalServerError)
