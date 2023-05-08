@@ -357,14 +357,9 @@ func (nb *Notebrew) executeTemplate(sitename string, dest io.Writer, src any, co
 	return nil
 }
 
-func callermsg(a ...any) string {
+func callermsg(v any) string {
 	_, file, line, _ := runtime.Caller(1)
-	var b strings.Builder
-	b.WriteString(file + ":" + strconv.Itoa(line))
-	for _, v := range a {
-		b.WriteString("\n" + fmt.Sprint(v))
-	}
-	return b.String()
+	return file + ":" + strconv.Itoa(line) + ": " + fmt.Sprint(v)
 }
 
 func serveFile(w http.ResponseWriter, r *http.Request, file fs.File) {
@@ -490,6 +485,9 @@ func (f tmpfile) Write(p []byte) (n int, err error) {
 }
 
 func (f tmpfile) Close() error {
+	if f.file == nil {
+		return fmt.Errorf("already closed")
+	}
 	fileinfo, err := f.file.Stat()
 	if err != nil {
 		return err
@@ -499,6 +497,7 @@ func (f tmpfile) Close() error {
 		return err
 	}
 	src := filepath.Join(f.dir, fileinfo.Name())
+	f.file = nil
 	return os.Rename(filepath.ToSlash(src), filepath.ToSlash(f.dest))
 }
 

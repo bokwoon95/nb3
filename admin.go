@@ -10,6 +10,7 @@ import (
 	"errors"
 	"fmt"
 	"html/template"
+	"io"
 	"io/fs"
 	"log"
 	"net/http"
@@ -150,7 +151,7 @@ func (nb *Notebrew) login(w http.ResponseWriter, r *http.Request) {
 		}
 		_, err = buf.WriteTo(w)
 		if err != nil {
-			log.Println(err)
+			log.Println(callermsg(err))
 		}
 	case "POST":
 		email := r.PostForm.Get("email")
@@ -401,7 +402,7 @@ func (nb *Notebrew) dashboard(w http.ResponseWriter, r *http.Request) {
 		}
 		_, err = buf.WriteTo(w)
 		if err != nil {
-			log.Println(err)
+			log.Println(callermsg(err))
 		}
 	default:
 		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
@@ -481,7 +482,7 @@ func (nb *Notebrew) resetpassword(w http.ResponseWriter, r *http.Request) {
 		}
 		_, err = buf.WriteTo(w)
 		if err != nil {
-			log.Println(err)
+			log.Println(callermsg(err))
 		}
 	case "POST":
 		// Make sure the password is at least 8 characters.
@@ -633,6 +634,67 @@ func (nb *Notebrew) create(w http.ResponseWriter, r *http.Request, urlpath strin
 	segment, urlpath, _ := strings.Cut(strings.Trim(urlpath, "/"), "/")
 	switch segment {
 	case "post":
+		segment, _, _ := strings.Cut(strings.Trim(urlpath, "/"), "/")
+		if segment != "" {
+			http.Error(w, "Not Found", http.StatusNotFound)
+			return
+		}
+		r.Body = http.MaxBytesReader(w, r.Body, 32<<20)
+		multipartReader, err := r.MultipartReader()
+		if err != nil {
+			http.Error(w, callermsg(err), http.StatusInternalServerError)
+			return
+		}
+		var filename string
+		for i := 0; i < 100; i++ {
+			part, err := multipartReader.NextPart()
+			if err == io.EOF {
+				break
+			}
+			if err != nil {
+				http.Error(w, callermsg(err), http.StatusInternalServerError)
+				return
+			}
+			if part.FormName() == "content" {
+				filename = strings.ToLower(ulid.Make().String()) + ".md"
+				file, err := OpenWriter(nb.FS, filename)
+				if err != nil {
+					if errors.Is(err, ErrNotSupported) {
+						http.Error(w, "Not Implemented", http.StatusNotImplemented)
+						return
+					}
+					http.Error(w, callermsg(err), http.StatusInternalServerError)
+					return
+				}
+				defer file.Close()
+				_, err = io.Copy(file, part)
+				if err != nil {
+					http.Error(w, callermsg(err), http.StatusInternalServerError)
+					return
+				}
+				err = part.Close()
+				if err != nil {
+					http.Error(w, callermsg(err), http.StatusInternalServerError)
+					return
+				}
+				err = file.Close()
+				if err != nil {
+					http.Error(w, callermsg(err), http.StatusInternalServerError)
+					return
+				}
+			}
+			if filename != "" {
+				break
+			}
+		}
+		if filename == "" {
+			http.Error(w, "Bad Request", http.StatusBadRequest)
+			return
+		}
+		_, err = io.WriteString(w, filename)
+		if err != nil {
+			log.Println(callermsg(err))
+		}
 	default:
 		http.Error(w, "Bad Request", http.StatusBadRequest)
 	}

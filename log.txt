@@ -67,3 +67,7 @@ example.com/posts/ layout:
 == 2023-05-01 ==
 
 DONE: Rename all instance of home to dashboard instead. "Home" reminds too much of "homepage" i.e. "/" and not "/admin/"
+
+== 2023-05-09 ==
+
+TODO: test out if creating a post works.
