@@ -74,7 +74,6 @@ func (nb *Notebrew) admin(w http.ResponseWriter, r *http.Request, sitename strin
 	case "templates":
 	case "posts":
 	case "pages":
-	case "notes":
 	default:
 		http.NotFound(w, r)
 	}
@@ -607,6 +606,29 @@ func (nb *Notebrew) create(w http.ResponseWriter, r *http.Request, urlpath strin
 	// POST /admin/create/post/
 	if r.Method != "POST" {
 		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+	}
+	if nb.DB != nil {
+		// If user does not have a sessionToken, HTTP Unauthorized.
+		sessionTokenHash := nb.sessionTokenHash(r)
+		if sessionTokenHash == nil {
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			return
+		}
+		// If user's sessionToken is not valid, HTTP Unauthorized.
+		exists, err := sq.FetchExistsContext(r.Context(), nb.DB, sq.SelectQuery{
+			Dialect:        nb.Dialect,
+			SelectFields:   SelectOne,
+			FromTable:      Sessions,
+			WherePredicate: Sessions.SESSION_TOKEN_HASH.EqBytes(sessionTokenHash),
+		})
+		if err != nil {
+			http.Error(w, callermsg(err), http.StatusInternalServerError)
+			return
+		}
+		if !exists {
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			return
+		}
 	}
 	segment, urlpath, _ := strings.Cut(strings.Trim(urlpath, "/"), "/")
 	switch segment {

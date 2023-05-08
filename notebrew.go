@@ -503,7 +503,7 @@ func (f tmpfile) Close() error {
 }
 
 func (dir dirFS) MkdirAll(path string, perm fs.FileMode) error {
-	return os.MkdirAll(filepath.ToSlash(path), perm)
+	return os.MkdirAll(filepath.ToSlash(filepath.Join(string(dir), path)), perm)
 }
 
 func (dir dirFS) RemoveAll(path string) error {

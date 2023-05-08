@@ -19,6 +19,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/bokwoon95/sq"
 	"github.com/caddyserver/certmagic"
 )
 
@@ -128,10 +129,7 @@ func New(fsys fs.FS) (*Notebrew, error) {
 			nb.Dialect = "sqlserver"
 		} else if strings.Contains(dsn, "@tcp(") || strings.Contains(dsn, "@unix(") {
 			nb.Dialect = "mysql"
-		} else {
-			if dsn == "" {
-				return nil, fmt.Errorf("database.txt exists but is empty")
-			}
+		} else if dsn != "" {
 			return nil, fmt.Errorf("database.txt: unknown dsn %q", dsn)
 		}
 	}
@@ -207,6 +205,41 @@ func New(fsys fs.FS) (*Notebrew, error) {
 		}
 		if nb.AdminDomain != "" {
 			nb.Port = 443
+		}
+	}
+
+	// posts/ images/ pages/ templates/ assets/
+	// posts | pages
+	_ = MkdirAll(nb.FS, "posts", 0755)
+	_ = MkdirAll(nb.FS, "images", 0755)
+	_ = MkdirAll(nb.FS, "pages", 0755)
+	_ = MkdirAll(nb.FS, "templates", 0755)
+	_ = MkdirAll(nb.FS, "assets", 0755)
+	if nb.MultisiteMode != "" {
+		sites, err := sq.FetchAll(nb.DB, sq.SelectQuery{
+			Dialect:   nb.Dialect,
+			FromTable: Sites,
+		}, func(row *sq.Row) (result struct {
+			SiteName       string
+			IsCustomDomain bool
+		}) {
+			result.SiteName = row.StringField(Sites.SITE_NAME)
+			result.IsCustomDomain = row.BoolField(Sites.IS_CUSTOM_DOMAIN)
+			return result
+		})
+		if err != nil {
+			return nil, err
+		}
+		for _, site := range sites {
+			siteName := site.SiteName
+			if !site.IsCustomDomain {
+				siteName = "~" + siteName
+			}
+			_ = MkdirAll(nb.FS, path.Join(siteName, "posts"), 0755)
+			_ = MkdirAll(nb.FS, path.Join(siteName, "images"), 0755)
+			_ = MkdirAll(nb.FS, path.Join(siteName, "pages"), 0755)
+			_ = MkdirAll(nb.FS, path.Join(siteName, "templates"), 0755)
+			_ = MkdirAll(nb.FS, path.Join(siteName, "assets"), 0755)
 		}
 	}
 
