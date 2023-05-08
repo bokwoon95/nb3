@@ -657,7 +657,7 @@ func (nb *Notebrew) create(w http.ResponseWriter, r *http.Request, urlpath strin
 			}
 			if part.FormName() == "content" {
 				filename = strings.ToLower(ulid.Make().String()) + ".md"
-				file, err := OpenWriter(nb.FS, path.Join("posts",filename))
+				file, err := OpenWriter(nb.FS, path.Join("posts", filename))
 				if err != nil {
 					if errors.Is(err, ErrNotSupported) {
 						http.Error(w, "Not Implemented", http.StatusNotImplemented)
