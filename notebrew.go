@@ -464,10 +464,14 @@ func (dir dirFS) Open(name string) (fs.File, error) {
 func (dir dirFS) OpenWriter(name string) (io.WriteCloser, error) {
 	var err error
 	f := tmpfile{
-		dir:  os.TempDir(),
+		dir:  filepath.Join(os.TempDir(), "notebrew_temp"),
 		dest: filepath.Join(string(dir), name),
 	}
-	f.file, err = os.CreateTemp(f.dir, "notebrew_temp/*")
+	err = os.MkdirAll(f.dir, 0755)
+	if err != nil {
+		return nil, err
+	}
+	f.file, err = os.CreateTemp(f.dir, "*")
 	if err != nil {
 		return nil, err
 	}
