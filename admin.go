@@ -640,14 +640,14 @@ func (nb *Notebrew) create(w http.ResponseWriter, r *http.Request, urlpath strin
 			return
 		}
 		r.Body = http.MaxBytesReader(w, r.Body, 32<<20)
-		multipartReader, err := r.MultipartReader()
+		reader, err := r.MultipartReader()
 		if err != nil {
 			http.Error(w, callermsg(err), http.StatusInternalServerError)
 			return
 		}
 		var filename string
 		for i := 0; i < 100; i++ {
-			part, err := multipartReader.NextPart()
+			part, err := reader.NextPart()
 			if err == io.EOF {
 				break
 			}
