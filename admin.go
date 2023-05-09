@@ -82,10 +82,6 @@ func (nb *Notebrew) admin(w http.ResponseWriter, r *http.Request, sitename strin
 
 func (nb *Notebrew) login(w http.ResponseWriter, r *http.Request) {
 	if nb.DB == nil {
-		if r.Method == "GET" {
-			http.Redirect(w, r, "/admin/", http.StatusFound)
-			return
-		}
 		http.Error(w, "Not Found", http.StatusNotFound)
 		return
 	}
@@ -96,15 +92,6 @@ func (nb *Notebrew) login(w http.ResponseWriter, r *http.Request) {
 	}
 	switch r.Method {
 	case "GET":
-		// Reset the responseCode.
-		http.SetCookie(w, &http.Cookie{
-			Path:     "/admin/login/",
-			Name:     "responseCode",
-			Value:    "",
-			Secure:   nb.AdminDomain != "",
-			HttpOnly: true,
-			SameSite: http.SameSiteLaxMode,
-		})
 		// If there is already a valid sessionToken, redirect user to the
 		// dashboard instead.
 		sessionTokenHash := nb.sessionTokenHash(r)
@@ -128,6 +115,15 @@ func (nb *Notebrew) login(w http.ResponseWriter, r *http.Request) {
 		cookie, _ := r.Cookie("responseCode")
 		if cookie != nil {
 			responseCode, _ = strconv.Atoi(cookie.Value)
+			http.SetCookie(w, &http.Cookie{
+				Path:     "/admin/login/",
+				Name:     "responseCode",
+				Value:    "",
+				Secure:   nb.AdminDomain != "",
+				HttpOnly: true,
+				SameSite: http.SameSiteLaxMode,
+				MaxAge:   -1,
+			})
 		}
 		var target string
 		value := r.FormValue("target")
@@ -452,18 +448,18 @@ func (nb *Notebrew) resetpassword(w http.ResponseWriter, r *http.Request) {
 	}
 	switch r.Method {
 	case "GET":
-		// Reset the responseCode.
-		http.SetCookie(w, &http.Cookie{
-			Path:     "/admin/resetpassword/",
-			Name:     "responseCode",
-			Value:    "",
-			Secure:   nb.AdminDomain != "",
-			HttpOnly: true,
-			SameSite: http.SameSiteLaxMode,
-		})
 		var responseCode int
 		if cookie, _ := r.Cookie("responseCode"); cookie != nil {
 			responseCode, _ = strconv.Atoi(cookie.Value)
+			http.SetCookie(w, &http.Cookie{
+				Path:     "/admin/resetpassword/",
+				Name:     "responseCode",
+				Value:    "",
+				Secure:   nb.AdminDomain != "",
+				HttpOnly: true,
+				SameSite: http.SameSiteLaxMode,
+				MaxAge:   -1,
+			})
 		}
 		// Render html/resetpassword.html.
 		tmpl, err := template.ParseFS(os.DirFS("."), "html/resetpassword.html")
