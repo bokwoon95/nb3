@@ -691,10 +691,22 @@ func (nb *Notebrew) create(w http.ResponseWriter, r *http.Request, urlpath strin
 			http.Error(w, "Bad Request", http.StatusBadRequest)
 			return
 		}
+		// TODO: Create and redirect to /admin/posts/<postID>/. This should
+		// serve as a perfectly usable noscript way to create a new post via
+		// HTML form.
 		_, err = io.WriteString(w, filename)
 		if err != nil {
 			log.Println(callermsg(err))
 		}
+	case "page":
+		// TODO: Create /admin/pages/<pagePath>/ and return HTTP 204 (No
+		// Content).
+	case "template":
+		// TODO: Create /admin/templates/<templatePath>/ and return HTTP 204
+		// (No Content).
+	case "asset":
+		// TODO: Create /admin/assets/<assetPath>/ and return HTTP 204 (No
+		// Content).
 	default:
 		http.Error(w, "Bad Request", http.StatusBadRequest)
 	}

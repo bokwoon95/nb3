@@ -70,4 +70,6 @@ DONE: Rename all instance of home to dashboard instead. "Home" reminds too much 
 
 == 2023-05-09 ==
 
-TODO: test out if creating a post works.
+DONE: test out if creating a post works.
+
+== 2023-05-10 ==
