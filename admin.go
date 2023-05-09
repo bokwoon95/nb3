@@ -228,7 +228,11 @@ func (nb *Notebrew) login(w http.ResponseWriter, r *http.Request) {
 			HttpOnly: true,
 			SameSite: http.SameSiteLaxMode,
 		})
-		// Redirect user to the dashboard.
+		// Redirect user to the dashboard (or target).
+		if target != "" {
+			http.Redirect(w, r, target, http.StatusFound)
+			return
+		}
 		http.Redirect(w, r, "/admin/", http.StatusFound)
 	default:
 		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
