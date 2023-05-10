@@ -12,7 +12,6 @@ import (
 	"html/template"
 	"io"
 	"io/fs"
-	"log"
 	"net/http"
 	"net/url"
 	"os"
@@ -145,10 +144,7 @@ func (nb *Notebrew) login(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, callermsg(err), http.StatusInternalServerError)
 			return
 		}
-		_, err = buf.WriteTo(w)
-		if err != nil {
-			log.Println(callermsg(err))
-		}
+		buf.WriteTo(w)
 	case "POST":
 		email := r.PostForm.Get("email")
 		password := r.PostForm.Get("password")
@@ -400,10 +396,7 @@ func (nb *Notebrew) dashboard(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, callermsg(err), http.StatusInternalServerError)
 			return
 		}
-		_, err = buf.WriteTo(w)
-		if err != nil {
-			log.Println(callermsg(err))
-		}
+		buf.WriteTo(w)
 	default:
 		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
 	}
@@ -480,10 +473,7 @@ func (nb *Notebrew) resetpassword(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, callermsg(err), http.StatusInternalServerError)
 			return
 		}
-		_, err = buf.WriteTo(w)
-		if err != nil {
-			log.Println(callermsg(err))
-		}
+		buf.WriteTo(w)
 	case "POST":
 		// Make sure the password is at least 8 characters.
 		password := r.PostForm.Get("password")
@@ -631,6 +621,20 @@ func (nb *Notebrew) create(w http.ResponseWriter, r *http.Request, urlpath strin
 			return
 		}
 	}
+	// TODO: the path is just /create/ now. Anything else is 404. 
+	//
+	// If it's a post, the first item must have the name "post", followed by
+	// one or more names of "image". Any other string is an error. The response
+	// is HTTP 302 (Found), together with a redirect link to the newly-created
+	// page.
+	//
+	// If the first name is not "post", subsequent names are not allowed to
+	// have either "post" or "image". The only names allowed in this mode must
+	// either have a prefix of "templates/...", "pages/..." or "assets/...".
+	// The response is HTTP 204 (No Content).
+	//
+	// "post": "...", "image": "...", "image": "..." => HTTP 302 (Found) /admin/posts/<postID>/
+	// "templates/a/b/c": "...", "pages/d/e/f": "...", "assets/g/h/i.jpg": "..."
 	segment, urlpath, _ := strings.Cut(strings.Trim(urlpath, "/"), "/")
 	switch segment {
 	case "post":
@@ -645,7 +649,7 @@ func (nb *Notebrew) create(w http.ResponseWriter, r *http.Request, urlpath strin
 			http.Error(w, callermsg(err), http.StatusInternalServerError)
 			return
 		}
-		var filename string
+		var postID string
 		for i := 0; i < 100; i++ {
 			part, err := reader.NextPart()
 			if err == io.EOF {
@@ -656,8 +660,8 @@ func (nb *Notebrew) create(w http.ResponseWriter, r *http.Request, urlpath strin
 				return
 			}
 			if part.FormName() == "content" {
-				filename = strings.ToLower(ulid.Make().String()) + ".md"
-				file, err := OpenWriter(nb.FS, path.Join("posts", filename))
+				postID = strings.ToLower(ulid.Make().String())
+				file, err := OpenWriter(nb.FS, path.Join("posts", postID+".md"))
 				if err != nil {
 					if errors.Is(err, ErrNotSupported) {
 						http.Error(w, "Not Implemented", http.StatusNotImplemented)
@@ -683,21 +687,15 @@ func (nb *Notebrew) create(w http.ResponseWriter, r *http.Request, urlpath strin
 					return
 				}
 			}
-			if filename != "" {
+			if postID != "" {
 				break
 			}
 		}
-		if filename == "" {
-			http.Error(w, "Bad Request", http.StatusBadRequest)
+		if postID == "" {
+			http.Error(w, "Bad Request: content missing", http.StatusBadRequest)
 			return
 		}
-		// TODO: Create and redirect to /admin/posts/<postID>/. This should
-		// serve as a perfectly usable noscript way to create a new post via
-		// HTML form.
-		_, err = io.WriteString(w, filename)
-		if err != nil {
-			log.Println(callermsg(err))
-		}
+		http.Redirect(w, r, "/admin/posts/"+postID+"/", http.StatusFound)
 	case "page":
 		// TODO: Create /admin/pages/<pagePath>/ and return HTTP 204 (No
 		// Content).

@@ -329,10 +329,7 @@ func (nb *Notebrew) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, callermsg(err), http.StatusInternalServerError)
 			return
 		}
-		_, err = buf.WriteTo(w)
-		if err != nil {
-			log.Println(err)
-		}
+		buf.WriteTo(w)
 	}
 }
 
