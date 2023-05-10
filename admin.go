@@ -621,7 +621,7 @@ func (nb *Notebrew) create(w http.ResponseWriter, r *http.Request, urlpath strin
 			return
 		}
 	}
-	// TODO: the path is just /create/ now. Anything else is 404. 
+	// TODO: the path is just /create/ now. Anything else is 404.
 	//
 	// If it's a post, the first item must have the name "post", followed by
 	// one or more names of "image". Any other string is an error. The response
@@ -697,14 +697,8 @@ func (nb *Notebrew) create(w http.ResponseWriter, r *http.Request, urlpath strin
 		}
 		http.Redirect(w, r, "/admin/posts/"+postID+"/", http.StatusFound)
 	case "page":
-		// TODO: Create /admin/pages/<pagePath>/ and return HTTP 204 (No
-		// Content).
 	case "template":
-		// TODO: Create /admin/templates/<templatePath>/ and return HTTP 204
-		// (No Content).
 	case "asset":
-		// TODO: Create /admin/assets/<assetPath>/ and return HTTP 204 (No
-		// Content).
 	default:
 		http.Error(w, "Bad Request", http.StatusBadRequest)
 	}
