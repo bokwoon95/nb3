@@ -622,6 +622,9 @@ func (nb *Notebrew) create(w http.ResponseWriter, r *http.Request, urlpath strin
 		}
 	}
 	// TODO: the path is just /create/ now. Anything else is 404.
+	// TODO: or is it /admin/upload/?
+	// TODO: /admin/create/post/, /admin/update/post/, /admin/upload/, /admin/delete/, /admin/rename/
+	// The overwhelming factor is based on whether I can make the endpoints useful even with noscript.
 	//
 	// If it's a post, the first item must have the name "post", followed by
 	// one or more names of "image". Any other string is an error. The response
