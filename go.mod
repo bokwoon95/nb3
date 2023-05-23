@@ -3,7 +3,7 @@ module github.com/bokwoon95/nb3
 go 1.20
 
 require (
-	github.com/bokwoon95/sq v0.3.2
+	github.com/bokwoon95/sq v0.3.3
 	github.com/bokwoon95/sqddl v0.4.3
 	github.com/caddyserver/certmagic v0.17.2
 	github.com/denisenkom/go-mssqldb v0.12.3
