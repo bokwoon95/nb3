@@ -216,7 +216,7 @@ func New(fsys fs.FS) (*Notebrew, error) {
 	_ = MkdirAll(nb.FS, "templates", 0755)
 	_ = MkdirAll(nb.FS, "assets", 0755)
 	if nb.MultisiteMode != "" {
-		sites, err := sq.FetchAll(nb.DB, sq.SelectQuery{
+		sites, err := sq.FetchAll(sq.Log(nb.DB), sq.SelectQuery{
 			Dialect:   nb.Dialect,
 			FromTable: Sites,
 		}, func(row *sq.Row) (result struct {

@@ -95,7 +95,7 @@ func (nb *Notebrew) login(w http.ResponseWriter, r *http.Request) {
 		// dashboard instead.
 		sessionTokenHash := nb.sessionTokenHash(r)
 		if sessionTokenHash != nil {
-			exists, err := sq.FetchExistsContext(r.Context(), nb.DB, sq.SelectQuery{
+			exists, err := sq.FetchExistsContext(r.Context(), sq.Log(nb.DB), sq.SelectQuery{
 				Dialect:        nb.Dialect,
 				SelectFields:   SelectOne,
 				FromTable:      Sessions,
@@ -154,7 +154,7 @@ func (nb *Notebrew) login(w http.ResponseWriter, r *http.Request) {
 			target = value
 		}
 		// Get the user info for the given email.
-		result, err := sq.FetchOneContext(r.Context(), nb.DB, sq.SelectQuery{
+		result, err := sq.FetchOneContext(r.Context(), sq.Log(nb.DB), sq.SelectQuery{
 			Dialect:        nb.Dialect,
 			FromTable:      Users,
 			WherePredicate: Users.EMAIL.EqString(email),
@@ -203,7 +203,7 @@ func (nb *Notebrew) login(w http.ResponseWriter, r *http.Request) {
 		var sessionTokenHash [8 + sha256.Size]byte
 		copy(sessionTokenHash[:8], sessionToken[:8])
 		copy(sessionTokenHash[8:], checksum[:])
-		_, err = sq.ExecContext(r.Context(), nb.DB, sq.InsertQuery{
+		_, err = sq.ExecContext(r.Context(), sq.Log(nb.DB), sq.InsertQuery{
 			Dialect:     nb.Dialect,
 			InsertTable: Sessions,
 			ColumnMapper: func(col *sq.Column) {
@@ -251,7 +251,7 @@ func (nb *Notebrew) logout(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// Delete their sessionTokenHash from the database.
-	_, err := sq.ExecContext(r.Context(), nb.DB, sq.DeleteQuery{
+	_, err := sq.ExecContext(r.Context(), sq.Log(nb.DB), sq.DeleteQuery{
 		Dialect:        nb.Dialect,
 		DeleteTable:    Sessions,
 		WherePredicate: Sessions.SESSION_TOKEN_HASH.EqBytes(sessionTokenHash),
@@ -289,7 +289,7 @@ func (nb *Notebrew) consumeLoginToken(w http.ResponseWriter, r *http.Request, si
 		return
 	}
 	// Get login info for the give loginToken.
-	result, err := sq.FetchOneContext(r.Context(), nb.DB, sq.SelectQuery{
+	result, err := sq.FetchOneContext(r.Context(), sq.Log(nb.DB), sq.SelectQuery{
 		Dialect:        nb.Dialect,
 		FromTable:      Logins,
 		WherePredicate: Logins.LOGIN_TOKEN.EqBytes(loginToken),
@@ -317,7 +317,7 @@ func (nb *Notebrew) consumeLoginToken(w http.ResponseWriter, r *http.Request, si
 		return
 	}
 	// Delete the loginToken from the database.
-	_, err = sq.ExecContext(r.Context(), nb.DB, sq.DeleteQuery{
+	_, err = sq.ExecContext(r.Context(), sq.Log(nb.DB), sq.DeleteQuery{
 		Dialect:        nb.Dialect,
 		DeleteTable:    Logins,
 		WherePredicate: Logins.LOGIN_TOKEN.EqBytes(loginToken),
@@ -367,7 +367,7 @@ func (nb *Notebrew) dashboard(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		// If user's sessionToken is not valid, redirect them to the login page.
-		exists, err := sq.FetchExistsContext(r.Context(), nb.DB, sq.SelectQuery{
+		exists, err := sq.FetchExistsContext(r.Context(), sq.Log(nb.DB), sq.SelectQuery{
 			Dialect:        nb.Dialect,
 			SelectFields:   SelectOne,
 			FromTable:      Sessions,
@@ -429,7 +429,7 @@ func (nb *Notebrew) resetpassword(w http.ResponseWriter, r *http.Request) {
 	copy(resetTokenHash[:8], resetToken[:8])
 	copy(resetTokenHash[8:], checksum[:])
 	// Make sure the resetTokenHash exists in the database.
-	exists, err := sq.FetchExistsContext(r.Context(), nb.DB, sq.SelectQuery{
+	exists, err := sq.FetchExistsContext(r.Context(), sq.Log(nb.DB), sq.SelectQuery{
 		Dialect:        nb.Dialect,
 		SelectFields:   SelectOne,
 		FromTable:      Users,
@@ -522,7 +522,7 @@ func (nb *Notebrew) resetpassword(w http.ResponseWriter, r *http.Request) {
 		}
 		defer tx.Rollback()
 		// Delete existing login tokens related to the user.
-		_, err = sq.ExecContext(r.Context(), tx, sq.DeleteQuery{
+		_, err = sq.ExecContext(r.Context(), sq.Log(tx), sq.DeleteQuery{
 			Dialect:     nb.Dialect,
 			DeleteTable: Logins,
 			WherePredicate: sq.Exists(sq.SelectQuery{
@@ -542,7 +542,7 @@ func (nb *Notebrew) resetpassword(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		// Delete existing session tokens related to the user.
-		_, err = sq.ExecContext(r.Context(), tx, sq.DeleteQuery{
+		_, err = sq.ExecContext(r.Context(), sq.Log(tx), sq.DeleteQuery{
 			Dialect:     nb.Dialect,
 			DeleteTable: Sessions,
 			WherePredicate: sq.Exists(sq.SelectQuery{
@@ -559,7 +559,7 @@ func (nb *Notebrew) resetpassword(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		// Update the user's password hash and delete their reset token.
-		_, err = sq.ExecContext(r.Context(), tx, sq.UpdateQuery{
+		_, err = sq.ExecContext(r.Context(), sq.Log(tx), sq.UpdateQuery{
 			Dialect:     nb.Dialect,
 			UpdateTable: Users,
 			Assignments: []sq.Assignment{
@@ -606,7 +606,7 @@ func (nb *Notebrew) create(w http.ResponseWriter, r *http.Request, urlpath strin
 			return
 		}
 		// If user's sessionToken is not valid, HTTP Unauthorized.
-		exists, err := sq.FetchExistsContext(r.Context(), nb.DB, sq.SelectQuery{
+		exists, err := sq.FetchExistsContext(r.Context(), sq.Log(nb.DB), sq.SelectQuery{
 			Dialect:        nb.Dialect,
 			SelectFields:   SelectOne,
 			FromTable:      Sessions,
