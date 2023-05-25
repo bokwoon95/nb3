@@ -70,7 +70,7 @@ func (nb *Notebrew) admin(w http.ResponseWriter, r *http.Request, sitename strin
 	case "delete":
 	case "rename":
 	case "assets":
-	case "images":
+	case "images": // TODO: not really needed because image displaying is handled separately.
 	case "templates":
 	case "posts":
 	case "pages":
