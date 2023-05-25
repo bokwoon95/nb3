@@ -72,21 +72,22 @@ DONE: Rename all instance of home to dashboard instead. "Home" reminds too much 
 
 DONE: test out if creating a post works.
 
-== 2023-05-10 ==
+== 2023-25-10 ==
 
 /admin/static/{urlpath...}
 /admin/login/{$}
 /admin/logout/{$}
 /admin/resetpassword/{$}
-/admin/create/{urlpath...}
-/admin/update/{urlpath...}
-/admin/delete/{urlpath...}
-/admin/rename/{urlpath...}
-/admin/assets/{$}
-/admin/assets/{urlpath...}
-/admin/templates/{$}
-/admin/templates/{urlpath...}
-/admin/posts/{$}
-/admin/posts/{urlpath...}
-/admin/pages/{$}
-/admin/pages/{urlpath...}
+/admin/{$}
+/admin/assets/{$,urlpath...}
+/admin/templates/{$,urlpath...}
+/admin/posts/{$,urlpath...}
+/admin/pages/{$,urlpath...}
+
+{action}/{resource}/{path...}
+switch resource
+    switch action
+        check path
+
+create | update | delete | rename
+assets | templates | pages | posts | images

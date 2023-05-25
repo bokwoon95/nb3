@@ -70,7 +70,6 @@ func (nb *Notebrew) admin(w http.ResponseWriter, r *http.Request, sitename strin
 	case "delete":
 	case "rename":
 	case "assets":
-	case "images": // TODO: not really needed because image displaying is handled separately.
 	case "templates":
 	case "posts":
 	case "pages":
@@ -397,6 +396,8 @@ func (nb *Notebrew) dashboard(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		buf.WriteTo(w)
+	case "POST":
+		// create/post/
 	default:
 		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
 	}
