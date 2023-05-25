@@ -74,20 +74,25 @@ DONE: test out if creating a post works.
 
 == 2023-25-10 ==
 
-/admin/static/{urlpath...}
-/admin/login/{$}
-/admin/logout/{$}
-/admin/resetpassword/{$}
-/admin/{$}
-/admin/assets/{$,urlpath...}
-/admin/templates/{$,urlpath...}
-/admin/posts/{$,urlpath...}
-/admin/pages/{$,urlpath...}
+GET /admin/static/{urlpath...}
+GET + POST /admin/login/{$}
+POST /admin/logout/{$}
+GET + POST /admin/resetpassword/{$}
+GET + POST /admin/{$}
+GET /admin/assets/{urlpath...}
+GET /admin/templates/{urlpath...}
+GET /admin/posts/{urlpath...}
+GET /admin/pages/{urlpath...}
 
 {action}/{resource}/{path...}
 switch resource
     switch action
         check path
+
+type UploadResponse struct{
+    Name   string `json:"name"`
+    Errmsg string `json:"errmsg,omitempty"`
+}
 
 create | update | delete | rename
 assets | templates | pages | posts | images

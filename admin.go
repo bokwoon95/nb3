@@ -7,6 +7,7 @@ import (
 	"database/sql"
 	"encoding/binary"
 	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"html/template"
@@ -397,7 +398,47 @@ func (nb *Notebrew) dashboard(w http.ResponseWriter, r *http.Request) {
 		}
 		buf.WriteTo(w)
 	case "POST":
-		// create/post/
+		reader, err := r.MultipartReader()
+		if err != nil {
+			http.Error(w, callermsg(err), http.StatusInternalServerError)
+			return
+		}
+		var results []map[string]any
+		for i := 0; i < 200; i++ {
+			part, err := reader.NextPart()
+			if err == io.EOF {
+				break
+			}
+			if err != nil {
+				http.Error(w, callermsg(err), http.StatusInternalServerError)
+				return
+			}
+			urlPath := part.FormName()
+			action, urlPath, _ := strings.Cut(urlPath, "/")
+			resource, urlPath, _ := strings.Cut(urlPath, "/")
+			switch resource {
+			case "":
+			case "assets":
+			case "templates":
+			case "pages":
+			case "posts":
+				switch action {
+				case "set":
+					if urlPath == "" {
+						// urlPath = $(generate-name)
+						return
+					}
+					// err := copyfile("", part)
+					// results = append(results, map[string]any{"name": urlPath, "errmsg": err.Error()})
+				case "delete":
+				case "rename":
+				default:
+				}
+			case "images":
+			default:
+			}
+		}
+		json.NewEncoder(w).Encode(results)
 	default:
 		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
 	}
