@@ -415,7 +415,7 @@ func (nb *Notebrew) dashboard(w http.ResponseWriter, r *http.Request) {
 				http.Error(w, callermsg(err), http.StatusInternalServerError)
 				return
 			}
-			formName := part.FormName()
+			formName := path.Clean(part.FormName())
 			results = append(results, Result{
 				Name: formName,
 			})
