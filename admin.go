@@ -412,12 +412,11 @@ func (nb *Notebrew) dashboard(w http.ResponseWriter, r *http.Request) {
 				http.Error(w, callermsg(err), http.StatusInternalServerError)
 				return
 			}
-			name := part.FormName()
 			results = append(results, Result{
-				Name: name,
+				Name: part.FormName(),
 			})
 			result := &results[len(results)-1]
-			action, urlPath, _ := strings.Cut(name, "/")
+			action, urlPath, _ := strings.Cut(result.Name, "/")
 			resource, urlPath, _ := strings.Cut(urlPath, "/")
 			switch action {
 			case "":
@@ -436,7 +435,7 @@ func (nb *Notebrew) dashboard(w http.ResponseWriter, r *http.Request) {
 			case "posts":
 				switch action {
 				case "set":
-					if name == "" {
+					if urlPath == "" {
 						// urlPath = $(generate-name)
 						return
 					}
