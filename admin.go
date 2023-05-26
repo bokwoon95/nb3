@@ -406,7 +406,7 @@ func (nb *Notebrew) dashboard(w http.ResponseWriter, r *http.Request) {
 		}
 		var results []Result
 		var nonImageResults []*Result
-		for i := 0; i < 201; i++ {
+		for i := 0; i < 200; i++ {
 			part, err := reader.NextPart()
 			if err == io.EOF {
 				break
@@ -422,7 +422,7 @@ func (nb *Notebrew) dashboard(w http.ResponseWriter, r *http.Request) {
 			result := &results[len(results)-1]
 			action, urlPath, _ := strings.Cut(formName, "/")
 			resource, urlPath, _ := strings.Cut(urlPath, "/")
-			if i == 201 {
+			if i == 200 {
 				result.UserError = "too many files (max 200)"
 				break
 			}
