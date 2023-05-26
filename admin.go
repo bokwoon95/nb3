@@ -416,11 +416,13 @@ func (nb *Notebrew) dashboard(w http.ResponseWriter, r *http.Request) {
 				Name: part.FormName(),
 			})
 			result := &results[len(results)-1]
+			if result.Name == "" {
+				result.Errmsg = "name is empty"
+				continue
+			}
 			action, urlPath, _ := strings.Cut(result.Name, "/")
 			resource, urlPath, _ := strings.Cut(urlPath, "/")
 			switch action {
-			case "":
-				result.Errmsg = "no action found"
 			case "set":
 			case "delete":
 			case "rename":
