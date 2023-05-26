@@ -399,11 +399,14 @@ func (nb *Notebrew) dashboard(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		type Result struct {
-			Name   string `json:"name"`
-			Errmsg string `json:"errmsg"`
+			Name        string
+			Target      string `json:",omitempty"`
+			UserError   string `json:",omitempty"`
+			ServerError string `json:",omitempty"`
 		}
 		var results []Result
-		for i := 0; i < 200; i++ {
+		var nonImageResults []*Result
+		for i := 0; i < 201; i++ {
 			part, err := reader.NextPart()
 			if err == io.EOF {
 				break
@@ -412,44 +415,67 @@ func (nb *Notebrew) dashboard(w http.ResponseWriter, r *http.Request) {
 				http.Error(w, callermsg(err), http.StatusInternalServerError)
 				return
 			}
+			formName := part.FormName()
 			results = append(results, Result{
-				Name: part.FormName(),
+				Name: formName,
 			})
 			result := &results[len(results)-1]
-			if result.Name == "" {
-				result.Errmsg = "name is empty"
+			action, urlPath, _ := strings.Cut(formName, "/")
+			resource, urlPath, _ := strings.Cut(urlPath, "/")
+			if i == 201 {
+				result.UserError = "too many files (max 200)"
+				break
+			}
+			if action == "" {
+				result.UserError = "no action specified"
 				continue
 			}
-			action, urlPath, _ := strings.Cut(result.Name, "/")
-			resource, urlPath, _ := strings.Cut(urlPath, "/")
+			if resource == "" {
+				result.UserError = "no resource specified"
+				continue
+			}
+			if resource != "images" {
+				nonImageResults = append(nonImageResults, result)
+			}
+			// GET /posts/{postID}/
+			// GET /images/{postID}/{imageNo}/
+			// GET /{urlPath...}/
 			switch action {
 			case "set":
-			case "delete":
-			case "rename":
-			default:
-				result.Errmsg = fmt.Sprintf("invalid action %q", action)
-			}
-			switch resource {
-			case "":
-			case "assets":
-			case "templates":
-			case "pages":
-			case "posts":
-				switch action {
-				case "set":
+				switch resource {
+				case "assets":
+				case "templates":
+				case "pages":
+				case "posts":
 					if urlPath == "" {
 						// urlPath = $(generate-name)
-						return
 					}
-					// err := copyfile("", part)
-					// results = append(results, map[string]any{"name": urlPath, "errmsg": err.Error()})
-				case "delete":
-				case "rename":
+				case "images":
 				default:
+					result.UserError = fmt.Sprintf("invalid resource %q", resource)
+					continue
 				}
-			case "images":
+				continue
+			case "delete":
+				continue
+			case "rename":
+				continue
 			default:
+				result.UserError = fmt.Sprintf("invalid action %q", action)
 			}
+		}
+		if len(nonImageResults) == 1 {
+			nonImageResult := nonImageResults[0]
+			if nonImageResult.UserError != "" {
+				http.Error(w, nonImageResult.UserError, http.StatusBadRequest)
+				return
+			}
+			if nonImageResult.ServerError != "" {
+				http.Error(w, nonImageResult.ServerError, http.StatusBadRequest)
+				return
+			}
+			http.Redirect(w, r, path.Join("/admin/", nonImageResult.Target), http.StatusFound)
+			return
 		}
 		json.NewEncoder(w).Encode(results)
 	default:
