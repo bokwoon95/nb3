@@ -437,8 +437,8 @@ func (nb *Notebrew) dashboard(w http.ResponseWriter, r *http.Request) {
 			if resource != "images" {
 				nonImageResults = append(nonImageResults, result)
 			}
-			// GET /posts/{postID}/
-			// GET /images/{postID}/{imageNo}/
+			// GET /posts/{postID...}/ (should posts be generated or not generated?)
+			// GET /images/{postID...}/{imageNo}/
 			// GET /{urlPath...}/
 			switch action {
 			case "set":
