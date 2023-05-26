@@ -65,11 +65,6 @@ func (nb *Notebrew) admin(w http.ResponseWriter, r *http.Request, sitename strin
 			return
 		}
 		nb.resetpassword(w, r)
-	case "create":
-		nb.create(w, r, urlpath)
-	case "update":
-	case "delete":
-	case "rename":
 	case "assets":
 	case "templates":
 	case "posts":
@@ -403,7 +398,11 @@ func (nb *Notebrew) dashboard(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, callermsg(err), http.StatusInternalServerError)
 			return
 		}
-		var results []map[string]any
+		type Result struct {
+			Name   string `json:"name"`
+			Errmsg string `json:"errmsg"`
+		}
+		var results []Result
 		for i := 0; i < 200; i++ {
 			part, err := reader.NextPart()
 			if err == io.EOF {
@@ -413,9 +412,22 @@ func (nb *Notebrew) dashboard(w http.ResponseWriter, r *http.Request) {
 				http.Error(w, callermsg(err), http.StatusInternalServerError)
 				return
 			}
-			urlPath := part.FormName()
-			action, urlPath, _ := strings.Cut(urlPath, "/")
+			name := part.FormName()
+			results = append(results, Result{
+				Name: name,
+			})
+			result := &results[len(results)-1]
+			action, urlPath, _ := strings.Cut(name, "/")
 			resource, urlPath, _ := strings.Cut(urlPath, "/")
+			switch action {
+			case "":
+				result.Errmsg = "no action found"
+			case "set":
+			case "delete":
+			case "rename":
+			default:
+				result.Errmsg = fmt.Sprintf("invalid action %q", action)
+			}
 			switch resource {
 			case "":
 			case "assets":
@@ -424,7 +436,7 @@ func (nb *Notebrew) dashboard(w http.ResponseWriter, r *http.Request) {
 			case "posts":
 				switch action {
 				case "set":
-					if urlPath == "" {
+					if name == "" {
 						// urlPath = $(generate-name)
 						return
 					}
