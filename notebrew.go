@@ -103,6 +103,19 @@ func OpenWriter(fsys fs.FS, name string) (io.WriteCloser, error) {
 	return nil, ErrNotSupported
 }
 
+func WriteFile(fsys fs.FS, name string, data []byte) error {
+	writer, err := OpenWriter(fsys, name)
+	if err != nil {
+		return err
+	}
+	defer writer.Close()
+	_, err = writer.Write(data)
+	if err != nil {
+		return err
+	}
+	return writer.Close()
+}
+
 func MkdirAll(fsys fs.FS, path string, perm fs.FileMode) error {
 	if fsys, ok := fsys.(MkdirAllFS); ok {
 		return fsys.MkdirAll(path, perm)

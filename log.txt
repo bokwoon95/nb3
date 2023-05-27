@@ -72,7 +72,7 @@ DONE: Rename all instance of home to dashboard instead. "Home" reminds too much 
 
 DONE: test out if creating a post works.
 
-== 2023-25-10 ==
+== 2023-05-25 ==
 
 GET /admin/static/{urlpath...}
 GET + POST /admin/login/{$}
@@ -96,3 +96,18 @@ type UploadResponse struct{
 
 create | update | delete | rename
 assets | templates | pages | posts | images
+
+== 2023-05-27 ==
+
+offline mode:
+read rss feed (state is maintained in flat files)
+make posts
+make notes (only posts get published)
+no database (so dropbox can sync a folder effortlessly)
+
+set/posts => /posts/{postID}/content.md, /posts/{postID}/is_private.txt
+set/posts/{postID} => /posts/{postID}/content.md, /posts/{postID}/is_private.txt
+set/assets/{urlpath...} => /assets/{urlpath...}
+set/templates/{urlpath...} => /templates/{urlpath...}
+set/pages/{urlpath...} => /pages/{urlpath...}
+set/images => /images/{postID}/{urlpath...}

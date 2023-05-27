@@ -30,41 +30,76 @@ import (
 func (nb *Notebrew) admin(w http.ResponseWriter, r *http.Request, sitename string, urlpath string) {
 	segment, urlpath, _ := strings.Cut(strings.Trim(urlpath, "/"), "/")
 	if sitename != "" {
+		if segment == "login" {
+			nb.consumeLoginToken(w, r, sitename)
+			return
+		}
+		http.Error(w, "Not Found", http.StatusNotFound)
+		return
+	}
+
+	if segment == "static" {
+		nb.static(w, r, urlpath)
+		return
+	}
+
+	if segment == "login" || segment == "logout" || segment == "resetpassword" {
+		nextSegment, _, _ := strings.Cut(strings.Trim(urlpath, "/"), "/")
+		if nextSegment != "" {
+			http.Error(w, "Not Found", http.StatusNotFound)
+			return
+		}
 		switch segment {
 		case "login":
-			nb.consumeLoginToken(w, r, sitename)
-		default:
-			http.Error(w, "Not Found", http.StatusNotFound)
+			nb.login(w, r)
+		case "logout":
+			nb.logout(w, r)
+		case "resetpassword":
+			nb.resetpassword(w, r)
 		}
 		return
 	}
 
+	if nb.DB != nil {
+		// If user does not have a sessionToken, redirect them to the login page.
+		sessionTokenHash := nb.sessionTokenHash(r)
+		if sessionTokenHash == nil {
+			http.Redirect(w, r, "/admin/login/", http.StatusFound)
+			return
+		}
+		// Get the sitename that the user is authorized for.
+		userSitename, err := sq.FetchOneContext(r.Context(), sq.Log(nb.DB),
+			sq.SelectQuery{
+				Dialect:   nb.Dialect,
+				FromTable: Sessions,
+				JoinTables: []sq.JoinTable{
+					sq.Join(Sites, Sites.USER_ID.Eq(Sessions.USER_ID)),
+				},
+				WherePredicate: Sessions.SESSION_TOKEN_HASH.EqBytes(sessionTokenHash),
+			},
+			func(row *sq.Row) string {
+				return row.StringField(Sites.SITE_NAME)
+			},
+		)
+		if err != nil {
+			if errors.Is(err, sql.ErrNoRows) {
+				// If user's sessionToken is not valid, redirect them to the login page.
+				http.Redirect(w, r, "/admin/login/", http.StatusFound)
+				return
+			}
+			http.Error(w, callermsg(err), http.StatusInternalServerError)
+			return
+		}
+		// If user's sitename doesn't match current sitename, http forbidden.
+		if userSitename != sitename {
+			http.Error(w, "Forbidden", http.StatusForbidden)
+			return
+		}
+	}
+
 	switch segment {
 	case "":
-		nb.dashboard(w, r)
-	case "static":
-		nb.static(w, r, urlpath)
-	case "login":
-		segment, _, _ := strings.Cut(strings.Trim(urlpath, "/"), "/")
-		if segment != "" {
-			http.Error(w, "Not Found", http.StatusNotFound)
-			return
-		}
-		nb.login(w, r)
-	case "logout":
-		segment, _, _ := strings.Cut(strings.Trim(urlpath, "/"), "/")
-		if segment != "" {
-			http.Error(w, "Not Found", http.StatusNotFound)
-			return
-		}
-		nb.logout(w, r)
-	case "resetpassword":
-		segment, _, _ := strings.Cut(strings.Trim(urlpath, "/"), "/")
-		if segment != "" {
-			http.Error(w, "Not Found", http.StatusNotFound)
-			return
-		}
-		nb.resetpassword(w, r)
+		nb.dashboard(w, r, sitename)
 	case "assets":
 	case "templates":
 	case "posts":
@@ -340,7 +375,8 @@ func (nb *Notebrew) consumeLoginToken(w http.ResponseWriter, r *http.Request, si
 }
 
 func (nb *Notebrew) static(w http.ResponseWriter, r *http.Request, urlpath string) {
-	file, err := os.DirFS(".").Open(path.Join("static", urlpath))
+	fsys := os.DirFS(".") // TODO: this will eventually become an embed.FS.
+	file, err := fsys.Open(path.Join("static", urlpath))
 	if err != nil {
 		if errors.Is(err, fs.ErrNotExist) {
 			http.Error(w, "Not Found", http.StatusNotFound)
@@ -353,30 +389,7 @@ func (nb *Notebrew) static(w http.ResponseWriter, r *http.Request, urlpath strin
 	serveFile(w, r, file)
 }
 
-func (nb *Notebrew) dashboard(w http.ResponseWriter, r *http.Request) {
-	if nb.DB != nil {
-		// If user does not have a sessionToken, redirect them to the login page.
-		sessionTokenHash := nb.sessionTokenHash(r)
-		if sessionTokenHash == nil {
-			http.Redirect(w, r, "/admin/login/", http.StatusFound)
-			return
-		}
-		// If user's sessionToken is not valid, redirect them to the login page.
-		exists, err := sq.FetchExistsContext(r.Context(), sq.Log(nb.DB), sq.SelectQuery{
-			Dialect:        nb.Dialect,
-			SelectFields:   SelectOne,
-			FromTable:      Sessions,
-			WherePredicate: Sessions.SESSION_TOKEN_HASH.EqBytes(sessionTokenHash),
-		})
-		if err != nil {
-			http.Error(w, callermsg(err), http.StatusInternalServerError)
-			return
-		}
-		if !exists {
-			http.Redirect(w, r, "/admin/login/", http.StatusFound)
-			return
-		}
-	}
+func (nb *Notebrew) dashboard(w http.ResponseWriter, r *http.Request, sitename string) {
 	switch r.Method {
 	case "GET":
 		// Render html/dashboard.html.
@@ -399,10 +412,10 @@ func (nb *Notebrew) dashboard(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		type Result struct {
-			Name        string
-			Target      string `json:",omitempty"`
-			UserError   string `json:",omitempty"`
-			ServerError string `json:",omitempty"`
+			Name        string `json:"name"`
+			URL         string `json:"url,omitempty"`
+			UserError   string `json:"user_error,omitempty"`
+			ServerError string `json:"server_error,omitempty"`
 		}
 		var results []Result
 		var nonImageResults []*Result
@@ -415,13 +428,20 @@ func (nb *Notebrew) dashboard(w http.ResponseWriter, r *http.Request) {
 				http.Error(w, callermsg(err), http.StatusInternalServerError)
 				return
 			}
-			formName := path.Clean(part.FormName())
 			results = append(results, Result{
-				Name: formName,
+				Name: part.FormName(),
 			})
 			result := &results[len(results)-1]
-			action, urlPath, _ := strings.Cut(formName, "/")
-			resource, urlPath, _ := strings.Cut(urlPath, "/")
+			var action, resource, query string
+			action, result.URL, _ = strings.Cut(strings.Trim(result.Name, "/"), "/")
+			resource, result.URL, _ = strings.Cut(strings.Trim(result.URL, "/"), "/")
+			result.URL, query, _ = strings.Cut(result.URL, "?")
+			result.URL = path.Clean(result.URL)
+			values, err := url.ParseQuery(query)
+			if err != nil {
+				result.UserError = fmt.Sprintf("parsing query string %q: %v", query, err)
+				continue
+			}
 			if i == 200 {
 				result.UserError = "too many files (max 200)"
 				break
@@ -437,18 +457,19 @@ func (nb *Notebrew) dashboard(w http.ResponseWriter, r *http.Request) {
 			if resource != "images" {
 				nonImageResults = append(nonImageResults, result)
 			}
-			// GET /posts/{postID...}/ (should posts be generated or not generated?)
-			// GET /images/{postID...}/{imageNo}/
-			// GET /{urlPath...}/
 			switch action {
 			case "set":
 				switch resource {
 				case "assets":
+					// writefile
 				case "templates":
 				case "pages":
 				case "posts":
-					if urlPath == "" {
+					if result.URL == "" {
 						// urlPath = $(generate-name)
+					}
+					isPrivate, _ := strconv.ParseBool(values.Get("is_private"))
+					if isPrivate {
 					}
 				case "images":
 				default:
@@ -462,6 +483,7 @@ func (nb *Notebrew) dashboard(w http.ResponseWriter, r *http.Request) {
 				continue
 			default:
 				result.UserError = fmt.Sprintf("invalid action %q", action)
+				continue
 			}
 		}
 		if len(nonImageResults) == 1 {
@@ -474,7 +496,7 @@ func (nb *Notebrew) dashboard(w http.ResponseWriter, r *http.Request) {
 				http.Error(w, nonImageResult.ServerError, http.StatusBadRequest)
 				return
 			}
-			http.Redirect(w, r, path.Join("/admin/", nonImageResult.Target), http.StatusFound)
+			http.Redirect(w, r, path.Join("/admin/", nonImageResult.URL), http.StatusFound)
 			return
 		}
 		json.NewEncoder(w).Encode(results)
